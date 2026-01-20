@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Video + Global Counter</title>
+  <title>WebPage</title>
   <style>
     body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:#0b0b0b; color:#f2f2f2; }
     header { position:sticky; top:0; background:rgba(20,20,20,.95); padding:14px 18px; border-bottom:1px solid rgba(255,255,255,.08); }
@@ -25,16 +25,16 @@
   <main>
     <div class="wrap">
       <div class="video-wrap">
+        <!-- Autoplay works because video is muted -->
         <video controls autoplay muted playsinline preload="auto">
-            <source src="./video.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
+          <source src="./video.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
         </video>
       </div>
     </div>
   </main>
 
   <script type="module">
-    // Firebase SDKs
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
     import {
       getDatabase,
@@ -43,7 +43,6 @@
       onValue
     } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
 
-    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyCAW3V721OPFptP7kpSrpGw8MTub6tyTx8",
       authDomain: "counter-d37d2.firebaseapp.com",
@@ -55,7 +54,6 @@
       measurementId: "G-JQBW46ZN4Z"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
@@ -66,24 +64,22 @@
 
     statusEl.textContent = " (updating…)";
 
-    // Always show live value
+    // Show live value
     onValue(countRef, (snapshot) => {
       const val = snapshot.val();
       openCountEl.textContent = (typeof val === "number") ? val : "0";
-    }, (error) => {
-      console.error(error);
+    }, () => {
       statusEl.textContent = " (read error)";
     });
 
-    // Increment counter atomically on page load
+    // Increment globally
     try {
       await runTransaction(countRef, (current) => {
         if (typeof current !== "number") return 1;
         return current + 1;
       });
-      statusEl.textContent = "total";
-    } catch (err) {
-      console.error(err);
+      statusEl.textContent = " (global)";
+    } catch {
       statusEl.textContent = " (write blocked)";
     }
   </script>
