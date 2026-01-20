@@ -1,13 +1,91 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <title>Portfolio</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Video + Global Counter</title>
+  <style>
+    body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:#0b0b0b; color:#f2f2f2; }
+    header { position:sticky; top:0; background:rgba(20,20,20,.95); padding:14px 18px; border-bottom:1px solid rgba(255,255,255,.08); }
+    .counter { font-size:14px; opacity:.95; }
+    main { min-height: calc(100vh - 56px); display:grid; place-items:center; padding:24px; }
+    .wrap { width:min(1100px,95vw); }
+    .video-wrap { aspect-ratio:16/9; border-radius:14px; overflow:hidden; border:1px solid rgba(255,255,255,.08); box-shadow:0 12px 40px rgba(0,0,0,.55); background:#000; }
+    video { width:100%; height:100%; display:block; background:#000; }
+  </style>
 </head>
 <body>
-    <h1 style="text-align: center;">Website</h1>
-    <h4 style="text-align: center;">This is a website</h4>
+  <header>
+    <div class="counter">
+      Page Opens: <strong id="openCount">Loading…</strong>
+      <span id="status" style="opacity:.75;"></span>
+    </div>
+  </header>
 
-    <img src="moti.png"; style="width: 100px;"> 
-    <br>this is my moti cousin. 
+  <main>
+    <div class="wrap">
+      <div class="video-wrap">
+        <video controls preload="metadata" playsinline>
+          <source src="./video.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    // Firebase SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      runTransaction,
+      onValue
+    } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
+
+    // Your Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCAW3V721OPFptP7kpSrpGw8MTub6tyTx8",
+      authDomain: "counter-d37d2.firebaseapp.com",
+      databaseURL: "https://counter-d37d2-default-rtdb.firebaseio.com",
+      projectId: "counter-d37d2",
+      storageBucket: "counter-d37d2.firebasestorage.app",
+      messagingSenderId: "811252910900",
+      appId: "1:811252910900:web:b31dbe969d19bc248e7361",
+      measurementId: "G-JQBW46ZN4Z"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const countRef = ref(db, "counters/pageOpens");
+
+    const openCountEl = document.getElementById("openCount");
+    const statusEl = document.getElementById("status");
+
+    statusEl.textContent = " (updating…)";
+
+    // Always show live value
+    onValue(countRef, (snapshot) => {
+      const val = snapshot.val();
+      openCountEl.textContent = (typeof val === "number") ? val : "0";
+    }, (error) => {
+      console.error(error);
+      statusEl.textContent = " (read error)";
+    });
+
+    // Increment counter atomically on page load
+    try {
+      await runTransaction(countRef, (current) => {
+        if (typeof current !== "number") return 1;
+        return current + 1;
+      });
+      statusEl.textContent = "total";
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = " (write blocked)";
+    }
+  </script>
 </body>
 </html>
